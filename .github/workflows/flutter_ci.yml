@@ -1,0 +1,45 @@
+
+name: Flutter CI Pipeline - UTEC Calidad
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality-check:
+    name: Lint, Test and Build Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Configurar SDK de Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Instalar Dependencias de Pub
+        run: flutter pub get
+
+      - name: Verificar Formato de Código
+        run: dart format --set-exit-if-changed lib/ test/
+
+      - name: Análisis Estático de Código (Linter)
+        run: flutter analyze
+
+      - name: Ejecutar Pruebas Unitarias y Cobertura
+        run: flutter test --coverage
+
+      - name: Compilar Artefacto Web
+        run: flutter build web --release
